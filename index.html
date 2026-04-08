@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>員工意見單</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, 'Segoe UI', 'PingFang TC',
+          'Microsoft JhengHei', sans-serif;
+        background: #ededed;
+        color: #222;
+        min-height: 100vh;
+      }
+      .phone {
+        max-width: 480px;
+        width: 100%;
+        margin: 0 auto;
+        background: #fff;
+        min-height: 100vh;
+        position: relative;
+        padding-bottom: 40px;
+      }
+      @media (min-width: 520px) {
+        body {
+          padding: 24px 0;
+        }
+        .phone {
+          border-radius: 28px;
+          box-shadow: 0 24px 60px rgba(0, 0, 0, 0.12);
+          overflow: hidden;
+          min-height: calc(100vh - 48px);
+        }
+      }
+
+      .nav {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 56px 20px 8px;
+      }
+      .nav .title {
+        font-size: 17px;
+        font-weight: 700;
+        letter-spacing: 2px;
+      }
+
+      .header {
+        padding: 20px 20px 6px;
+        text-align: center;
+      }
+      .header h1 {
+        margin: 0;
+        font-size: clamp(26px, 7vw, 32px);
+        font-weight: 800;
+        letter-spacing: 2px;
+        cursor: pointer;
+        display: inline-block;
+        user-select: none;
+        transition: opacity 0.15s;
+        padding: 6px 14px;
+      }
+      .header h1:active {
+        opacity: 0.4;
+      }
+
+      .section-title {
+        padding: 24px 24px 12px;
+        font-size: 15px;
+        font-weight: 700;
+      }
+
+      .timeline {
+        position: relative;
+        padding: 0 24px 20px 24px;
+      }
+      .timeline::before {
+        content: '';
+        position: absolute;
+        left: 66px;
+        top: 10px;
+        bottom: 10px;
+        width: 1px;
+        background: #e3e3e3;
+      }
+      .row {
+        position: relative;
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 18px;
+      }
+      .label {
+        font-size: 12px;
+        color: #888;
+        width: 34px;
+        padding-top: 18px;
+        flex-shrink: 0;
+      }
+      .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: 1.5px solid #aaa;
+        background: #fff;
+        margin-top: 20px;
+        margin-right: 18px;
+        flex-shrink: 0;
+        z-index: 1;
+        position: relative;
+        transition: all 0.2s;
+      }
+      .row.filled .dot {
+        background: #333;
+        border-color: #333;
+      }
+      .card {
+        flex: 1;
+        min-width: 0;
+        background: #f6f6f6;
+        border-radius: 12px;
+        padding: 14px 16px;
+        transition: background 0.2s;
+      }
+      .card:focus-within {
+        background: #efefef;
+      }
+      .card .field-title {
+        font-size: 14px;
+        font-weight: 700;
+        margin-bottom: 6px;
+      }
+      .card input,
+      .card select,
+      .card textarea {
+        width: 100%;
+        border: none;
+        background: transparent;
+        font-size: 15px;
+        color: #333;
+        font-family: inherit;
+        padding: 2px 0;
+        outline: none;
+      }
+      .card textarea {
+        resize: none;
+        min-height: 80px;
+        line-height: 1.5;
+      }
+      .card select {
+        appearance: none;
+        cursor: pointer;
+      }
+      .card .hint {
+        font-size: 11px;
+        color: #aaa;
+        margin-top: 4px;
+      }
+
+      .tips {
+        margin-top: 10px;
+        background: #ececec;
+        border-radius: 8px;
+        padding: 8px 10px;
+        font-size: 11px;
+        color: #666;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .tips .tag {
+        background: #333;
+        color: #fff;
+        padding: 1px 6px;
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+
+      .submit-wrap {
+        padding: 12px 24px 0;
+      }
+      .submit-btn {
+        width: 100%;
+        padding: 16px;
+        background: #222;
+        color: #fff;
+        border: none;
+        border-radius: 30px;
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 3px;
+        cursor: pointer;
+      }
+      .submit-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .msg {
+        margin: 12px 24px 0;
+        padding: 12px;
+        border-radius: 10px;
+        text-align: center;
+        font-size: 13px;
+        display: none;
+      }
+      .msg.ok {
+        background: #eaeaea;
+        color: #222;
+        display: block;
+      }
+      .msg.err {
+        background: #fbe9e9;
+        color: #a33;
+        display: block;
+      }
+
+      @media (max-width: 480px) {
+        .card input,
+        .card select,
+        .card textarea {
+          font-size: 16px;
+        }
+      }
+
+      /* 後台 */
+      .admin-menu {
+        padding: 20px 24px 0;
+        display: grid;
+        gap: 14px;
+      }
+      .admin-btn {
+        width: 100%;
+        padding: 22px 20px;
+        background: #f6f6f6;
+        border: none;
+        border-radius: 16px;
+        font-size: 16px;
+        font-weight: 700;
+        color: #222;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-family: inherit;
+        transition: background 0.15s;
+      }
+      .admin-btn:hover {
+        background: #eee;
+      }
+      .admin-btn .icon {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .admin-btn .icon-dot {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: #222;
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+      }
+      .admin-btn .arrow {
+        color: #999;
+        font-size: 18px;
+      }
+
+      .admin-back {
+        margin: 20px 24px 0;
+        background: none;
+        border: none;
+        font-size: 13px;
+        color: #666;
+        cursor: pointer;
+        padding: 6px 0;
+        font-family: inherit;
+      }
+
+      .settings-body {
+        padding: 0 24px 20px;
+      }
+      .settings-group {
+        margin-bottom: 22px;
+      }
+      .settings-group-title {
+        font-size: 12px;
+        font-weight: 700;
+        color: #888;
+        letter-spacing: 2px;
+        margin-bottom: 10px;
+        padding-left: 4px;
+      }
+      .settings-field {
+        background: #f6f6f6;
+        border-radius: 12px;
+        padding: 12px 14px;
+        margin-bottom: 10px;
+      }
+      .settings-field label {
+        display: block;
+        font-size: 11px;
+        color: #888;
+        margin-bottom: 4px;
+        font-weight: 600;
+      }
+      .settings-field input,
+      .settings-field textarea {
+        width: 100%;
+        border: none;
+        background: transparent;
+        font-size: 14px;
+        color: #222;
+        font-family: inherit;
+        outline: none;
+        padding: 2px 0;
+        resize: vertical;
+      }
+      .settings-field textarea {
+        min-height: 42px;
+        line-height: 1.5;
+      }
+
+      .category-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .category-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #f6f6f6;
+        border-radius: 10px;
+        padding: 10px 12px;
+      }
+      .category-item input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        font-size: 14px;
+        color: #222;
+        font-family: inherit;
+        outline: none;
+        padding: 2px 0;
+      }
+      .category-item .del-btn {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: none;
+        background: #e5e5e5;
+        color: #666;
+        font-size: 16px;
+        cursor: pointer;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .category-item .del-btn:hover {
+        background: #d9534f;
+        color: #fff;
+      }
+      .add-btn {
+        margin-top: 8px;
+        width: 100%;
+        padding: 10px;
+        background: #fff;
+        border: 1.5px dashed #ccc;
+        border-radius: 10px;
+        font-size: 13px;
+        color: #666;
+        cursor: pointer;
+        font-family: inherit;
+        font-weight: 600;
+      }
+      .add-btn:hover {
+        border-color: #222;
+        color: #222;
+      }
+
+      .settings-actions {
+        position: sticky;
+        bottom: 0;
+        background: linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0) 0%,
+          #fff 30%
+        );
+        padding: 20px 24px 10px;
+        display: flex;
+        gap: 10px;
+      }
+      .save-btn {
+        flex: 1;
+        padding: 14px;
+        background: #222;
+        color: #fff;
+        border: none;
+        border-radius: 26px;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        cursor: pointer;
+        font-family: inherit;
+      }
+      .save-btn:disabled {
+        opacity: 0.5;
+      }
+      .reset-btn {
+        padding: 14px 18px;
+        background: #f1f1f1;
+        color: #666;
+        border: none;
+        border-radius: 26px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+      }
+      .reset-btn:hover {
+        background: #fbe9e9;
+        color: #a33;
+      }
+
+      .dirty-hint {
+        margin: 0 24px 10px;
+        font-size: 11px;
+        color: #c09;
+        text-align: center;
+        display: none;
+      }
+      .dirty .dirty-hint {
+        display: block;
+      }
+
+      .records {
+        padding: 8px 24px 0;
+      }
+      .record-empty {
+        text-align: center;
+        color: #999;
+        font-size: 13px;
+        padding: 40px 0;
+      }
+      .record-item {
+        background: #f6f6f6;
+        border-radius: 12px;
+        padding: 14px 16px;
+        margin-bottom: 12px;
+      }
+      .record-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+      .record-head .name {
+        font-size: 14px;
+        font-weight: 700;
+        color: #222;
+      }
+      .record-head .cat {
+        background: #222;
+        color: #fff;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 4px;
+      }
+      .record-meta {
+        font-size: 11px;
+        color: #999;
+        margin-bottom: 8px;
+      }
+      .record-content {
+        font-size: 13px;
+        color: #444;
+        line-height: 1.55;
+        white-space: pre-wrap;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+      .toast {
+        position: fixed;
+        left: 50%;
+        bottom: 40px;
+        transform: translateX(-50%);
+        background: #222;
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 22px;
+        font-size: 13px;
+        font-weight: 600;
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+        z-index: 999;
+      }
+      .toast.show {
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="phone">
+      <div class="nav">
+        <div class="title" data-txt="navTitle">員工意見單</div>
+      </div>
+
+      <div class="header">
+        <h1 id="feedbackTitle" data-txt="mainHeading" title="點擊進入後台">
+          FEEDBACK
+        </h1>
+      </div>
+
+      <!-- ========== 使用者表單 ========== -->
+      <div id="userView">
+        <div class="section-title" data-txt="sectionTitle">填寫欄位</div>
+        <form id="feedbackForm">
+          <div class="timeline">
+            <div class="row">
+              <div class="label">01</div>
+              <div class="dot"></div>
+              <div class="card">
+                <div class="field-title" data-txt="f1Label">姓名</div>
+                <input
+                  type="text"
+                  id="name"
+                  data-ph="f1Placeholder"
+                  placeholder="請輸入您的姓名"
+                  required
+                />
+              </div>
+            </div>
+            <div class="row">
+              <div class="label">02</div>
+              <div class="dot"></div>
+              <div class="card">
+                <div class="field-title" data-txt="f2Label">部門</div>
+                <select id="department" required></select>
+              </div>
+            </div>
+            <div class="row">
+              <div class="label">03</div>
+              <div class="dot"></div>
+              <div class="card">
+                <div class="field-title" data-txt="f4Label">意見類別</div>
+                <select id="category" required></select>
+              </div>
+            </div>
+            <div class="row">
+              <div class="label">04</div>
+              <div class="dot"></div>
+              <div class="card">
+                <div class="field-title" data-txt="f5Label">意見內容</div>
+                <textarea
+                  id="content"
+                  data-ph="f5Placeholder"
+                  placeholder="請詳細描述您的意見或建議..."
+                  required
+                ></textarea>
+                <div class="tips">
+                  <span class="tag">Tips</span>
+                  <span data-txt="tipsText"
+                    >具體的描述與建議能幫助我們更快改善</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="submit-wrap">
+            <button
+              type="submit"
+              class="submit-btn"
+              id="submitBtn"
+              data-txt="submitBtn"
+            >
+              送 出 意 見
+            </button>
+          </div>
+          <div id="message" class="msg"></div>
+        </form>
+      </div>
+
+      <!-- ========== 後台首頁 ========== -->
+      <div id="adminMenu" class="hidden">
+        <div class="section-title">管理後台</div>
+        <div class="admin-menu">
+          <button class="admin-btn" id="btnSettings" type="button">
+            <span class="icon"><span class="icon-dot">⚙</span>設定</span>
+            <span class="arrow">›</span>
+          </button>
+          <button class="admin-btn" id="btnRecords" type="button">
+            <span class="icon"
+              ><span class="icon-dot">☰</span>意見表單紀錄</span
+            >
+            <span class="arrow">›</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ========== 設定 ========== -->
+      <div id="settingsView" class="hidden">
+        <button class="admin-back" data-back type="button">‹ 返回</button>
+        <div class="section-title">設定 · 編輯網站文字</div>
+        <div class="dirty-hint">● 有未儲存的變更</div>
+        <div class="settings-body" id="settingsBody"></div>
+        <div class="settings-actions">
+          <button class="reset-btn" id="resetBtn" type="button">
+            恢復預設
+          </button>
+          <button class="save-btn" id="saveBtn" type="button">
+            儲 存 設 定
+          </button>
+        </div>
+      </div>
+
+      <!-- ========== 意見紀錄 ========== -->
+      <div id="recordsView" class="hidden">
+        <button class="admin-back" data-back type="button">‹ 返回</button>
+        <div class="section-title">意見表單紀錄</div>
+        <div class="records" id="recordsList">
+          <div class="record-empty">（設定 Firebase 後將自動載入）</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+      (function () {
+        const DEFAULT_TEXTS = {
+          navTitle: '員工意見單',
+          mainHeading: 'FEEDBACK',
+          sectionTitle: '填寫欄位',
+          f1Label: '姓名',
+          f1Placeholder: '請輸入您的姓名',
+          f2Label: '部門',
+          f2Placeholder: '請選擇部門 ▾',
+          f4Label: '意見類別',
+          f4Placeholder: '請選擇類別 ▾',
+          f5Label: '意見內容',
+          f5Placeholder: '請詳細描述您的意見或建議...',
+          tipsText: '具體的描述與建議能幫助我們更快改善',
+          submitBtn: '送 出 意 見',
+          departments: [
+            '行銷部',
+            '業務部',
+            '研發部',
+            '人資部',
+            '財務部',
+            '行政部',
+          ],
+          categories: ['工作環境', '薪資福利', '管理制度', '教育訓練', '其他'],
+        };
+
+        const STORAGE_KEY = 'feedback_texts_v2';
+
+        const SCHEMA = [
+          {
+            group: '標題與導覽',
+            items: [
+              { key: 'navTitle', label: '頂部標題' },
+              { key: 'mainHeading', label: '主標題 (FEEDBACK)' },
+              { key: 'sectionTitle', label: '表單區塊標題' },
+            ],
+          },
+          {
+            group: '欄位 01 · 姓名',
+            items: [
+              { key: 'f1Label', label: '欄位名稱' },
+              { key: 'f1Placeholder', label: '輸入提示' },
+            ],
+          },
+          {
+            group: '欄位 02 · 部門',
+            items: [
+              { key: 'f2Label', label: '欄位名稱' },
+              { key: 'f2Placeholder', label: '下拉提示' },
+            ],
+          },
+          {
+            group: '欄位 03 · 意見類別',
+            items: [
+              { key: 'f4Label', label: '欄位名稱' },
+              { key: 'f4Placeholder', label: '下拉提示' },
+            ],
+          },
+          {
+            group: '欄位 04 · 意見內容',
+            items: [
+              { key: 'f5Label', label: '欄位名稱' },
+              { key: 'f5Placeholder', label: '輸入提示', multiline: true },
+              { key: 'tipsText', label: 'Tips 提示文字' },
+            ],
+          },
+          {
+            group: '按鈕',
+            items: [{ key: 'submitBtn', label: '送出按鈕文字' }],
+          },
+        ];
+
+        function loadTexts() {
+          try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return JSON.parse(JSON.stringify(DEFAULT_TEXTS));
+            const saved = JSON.parse(raw);
+            return Object.assign(
+              JSON.parse(JSON.stringify(DEFAULT_TEXTS)),
+              saved
+            );
+          } catch (e) {
+            return JSON.parse(JSON.stringify(DEFAULT_TEXTS));
+          }
+        }
+        function saveTexts(t) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(t));
+        }
+
+        let texts = loadTexts();
+        let draft = JSON.parse(JSON.stringify(texts));
+
+        function fillSelect(sel, items, placeholder) {
+          sel.innerHTML = '';
+          const def = document.createElement('option');
+          def.value = '';
+          def.textContent = placeholder || '請選擇 ▾';
+          sel.appendChild(def);
+          (items || []).forEach((c) => {
+            const opt = document.createElement('option');
+            opt.value = c;
+            opt.textContent = c;
+            sel.appendChild(opt);
+          });
+        }
+
+        function applyTexts() {
+          document.querySelectorAll('[data-txt]').forEach((el) => {
+            const k = el.getAttribute('data-txt');
+            if (texts[k] != null) el.textContent = texts[k];
+          });
+          document.querySelectorAll('[data-ph]').forEach((el) => {
+            const k = el.getAttribute('data-ph');
+            if (texts[k] != null) el.setAttribute('placeholder', texts[k]);
+          });
+          fillSelect(
+            document.getElementById('department'),
+            texts.departments,
+            texts.f2Placeholder
+          );
+          fillSelect(
+            document.getElementById('category'),
+            texts.categories,
+            texts.f4Placeholder
+          );
+          document.title = texts.navTitle || '員工意見單';
+        }
+
+        const settingsBody = document.getElementById('settingsBody');
+        const settingsView = document.getElementById('settingsView');
+
+        function buildEditableList(titleText, listKey) {
+          const group = document.createElement('div');
+          group.className = 'settings-group';
+          const title = document.createElement('div');
+          title.className = 'settings-group-title';
+          title.textContent = titleText;
+          group.appendChild(title);
+
+          const listWrap = document.createElement('div');
+          listWrap.className = 'category-list';
+          group.appendChild(listWrap);
+
+          function render() {
+            listWrap.innerHTML = '';
+            draft[listKey].forEach((val, idx) => {
+              const item = document.createElement('div');
+              item.className = 'category-item';
+              const inp = document.createElement('input');
+              inp.type = 'text';
+              inp.value = val;
+              inp.addEventListener('input', () => {
+                draft[listKey][idx] = inp.value;
+                markDirty();
+              });
+              const del = document.createElement('button');
+              del.type = 'button';
+              del.className = 'del-btn';
+              del.textContent = '×';
+              del.title = '刪除此項';
+              del.addEventListener('click', () => {
+                if (!confirm(`確定刪除「${draft[listKey][idx]}」？`)) return;
+                draft[listKey].splice(idx, 1);
+                markDirty();
+                render();
+              });
+              item.appendChild(inp);
+              item.appendChild(del);
+              listWrap.appendChild(item);
+            });
+          }
+          render();
+
+          const addBtn = document.createElement('button');
+          addBtn.type = 'button';
+          addBtn.className = 'add-btn';
+          addBtn.textContent = '＋ 新增項目';
+          addBtn.addEventListener('click', () => {
+            draft[listKey].push('新項目');
+            markDirty();
+            render();
+          });
+          group.appendChild(addBtn);
+
+          return group;
+        }
+
+        function renderSettings() {
+          settingsBody.innerHTML = '';
+
+          SCHEMA.forEach((group) => {
+            const gEl = document.createElement('div');
+            gEl.className = 'settings-group';
+            const gTitle = document.createElement('div');
+            gTitle.className = 'settings-group-title';
+            gTitle.textContent = group.group;
+            gEl.appendChild(gTitle);
+
+            group.items.forEach((item) => {
+              const field = document.createElement('div');
+              field.className = 'settings-field';
+              const lbl = document.createElement('label');
+              lbl.textContent = item.label;
+              field.appendChild(lbl);
+              const input = document.createElement(
+                item.multiline ? 'textarea' : 'input'
+              );
+              if (!item.multiline) input.type = 'text';
+              input.value = draft[item.key] != null ? draft[item.key] : '';
+              input.addEventListener('input', () => {
+                draft[item.key] = input.value;
+                markDirty();
+              });
+              field.appendChild(input);
+              gEl.appendChild(field);
+            });
+
+            settingsBody.appendChild(gEl);
+          });
+
+          // 部門列表
+          settingsBody.appendChild(
+            buildEditableList('部門選項 (新增 / 編輯 / 刪除)', 'departments')
+          );
+          // 類別列表
+          settingsBody.appendChild(
+            buildEditableList('意見類別選項 (新增 / 編輯 / 刪除)', 'categories')
+          );
+        }
+
+        function markDirty() {
+          settingsView.classList.add('dirty');
+        }
+        function clearDirty() {
+          settingsView.classList.remove('dirty');
+        }
+
+        const toastEl = document.getElementById('toast');
+        let toastTimer = null;
+        function toast(msg) {
+          toastEl.textContent = msg;
+          toastEl.classList.add('show');
+          clearTimeout(toastTimer);
+          toastTimer = setTimeout(() => toastEl.classList.remove('show'), 1800);
+        }
+
+        document.getElementById('saveBtn').addEventListener('click', () => {
+          draft.departments = draft.departments
+            .map((s) => s.trim())
+            .filter(Boolean);
+          draft.categories = draft.categories
+            .map((s) => s.trim())
+            .filter(Boolean);
+          texts = JSON.parse(JSON.stringify(draft));
+          saveTexts(texts);
+          applyTexts();
+          clearDirty();
+          renderSettings();
+          toast('✓ 設定已儲存');
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+          if (!confirm('確定要恢復所有設定為預設值？此動作無法復原。')) return;
+          draft = JSON.parse(JSON.stringify(DEFAULT_TEXTS));
+          texts = JSON.parse(JSON.stringify(DEFAULT_TEXTS));
+          localStorage.removeItem(STORAGE_KEY);
+          applyTexts();
+          renderSettings();
+          clearDirty();
+          toast('已恢復預設值');
+        });
+
+        const views = {
+          user: document.getElementById('userView'),
+          admin: document.getElementById('adminMenu'),
+          settings: document.getElementById('settingsView'),
+          records: document.getElementById('recordsView'),
+        };
+
+        function showView(name) {
+          if (
+            window.__currentView === 'settings' &&
+            settingsView.classList.contains('dirty')
+          ) {
+            if (!confirm('有未儲存的變更，確定要離開嗎？')) return;
+            draft = JSON.parse(JSON.stringify(texts));
+            renderSettings();
+            clearDirty();
+          }
+          Object.entries(views).forEach(([k, el]) => {
+            if (el) el.classList.toggle('hidden', k !== name);
+          });
+          window.scrollTo({ top: 0 });
+          window.__currentView = name;
+          if (name === 'settings') {
+            draft = JSON.parse(JSON.stringify(texts));
+            renderSettings();
+            clearDirty();
+          }
+          if (
+            name === 'records' &&
+            typeof window.__loadRecords === 'function'
+          ) {
+            window.__loadRecords();
+          }
+        }
+        window.__currentView = 'user';
+        window.__showView = showView;
+
+        document
+          .getElementById('feedbackTitle')
+          .addEventListener('click', () => {
+            if (window.__currentView === 'user') showView('admin');
+            else showView('user');
+          });
+        document
+          .getElementById('btnSettings')
+          .addEventListener('click', () => showView('settings'));
+        document
+          .getElementById('btnRecords')
+          .addEventListener('click', () => showView('records'));
+        document.querySelectorAll('[data-back]').forEach((btn) => {
+          btn.addEventListener('click', () => showView('admin'));
+        });
+
+        document.querySelectorAll('.card').forEach((card) => {
+          const input = card.querySelector('input, select, textarea');
+          if (!input) return;
+          const handler = () => {
+            const row = card.closest('.row');
+            if (input.value.trim()) row.classList.add('filled');
+            else row.classList.remove('filled');
+          };
+          input.addEventListener('input', handler);
+          input.addEventListener('change', handler);
+        });
+
+        applyTexts();
+      })();
+    </script>
+
+    <script type="module">
+      try {
+        const { initializeApp } = await import(
+          'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js'
+        );
+        const {
+          getFirestore,
+          collection,
+          addDoc,
+          getDocs,
+          query,
+          orderBy,
+          serverTimestamp,
+        } = await import(
+          'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js'
+        );
+
+        // TODO: 換成你自己的 Firebase 設定
+        const firebaseConfig = {
+          apiKey: 'AIzaSyCsy_6l_0dbdjFQZwvj2yJ2URvQZjpY9oA',
+          authDomain: 'employee-satisfaction-su-8bc8f.firebaseapp.com',
+          projectId: 'employee-satisfaction-su-8bc8f',
+          storageBucket: 'employee-satisfaction-su-8bc8f.firebasestorage.app',
+          messagingSenderId: '178215871555',
+          appId: '1:178215871555:web:fbac93a75812384673a0f6',
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        function escapeHtml(s) {
+          return String(s).replace(
+            /[&<>"']/g,
+            (c) =>
+              ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;',
+              }[c])
+          );
+        }
+
+        window.__loadRecords = async function () {
+          const list = document.getElementById('recordsList');
+          list.innerHTML = '<div class="record-empty">載入中...</div>';
+          try {
+            const q = query(
+              collection(db, 'feedbacks'),
+              orderBy('createdAt', 'desc')
+            );
+            const snap = await getDocs(q);
+            if (snap.empty) {
+              list.innerHTML =
+                '<div class="record-empty">目前沒有任何意見紀錄</div>';
+              return;
+            }
+            list.innerHTML = '';
+            snap.forEach((doc) => {
+              const d = doc.data();
+              const date = d.createdAt?.toDate
+                ? d.createdAt.toDate().toLocaleString('zh-TW')
+                : '—';
+              const item = document.createElement('div');
+              item.className = 'record-item';
+              item.innerHTML = `
+            <div class="record-head">
+              <span class="name">${escapeHtml(d.name || '未填')} · ${escapeHtml(
+                d.department || ''
+              )}</span>
+              <span class="cat">${escapeHtml(d.category || '其他')}</span>
+            </div>
+            <div class="record-meta">${date}</div>
+            <div class="record-content">${escapeHtml(d.content || '')}</div>
+          `;
+              list.appendChild(item);
+            });
+          } catch (err) {
+            console.error(err);
+            list.innerHTML = `<div class="record-empty">讀取失敗：${escapeHtml(
+              err.message
+            )}</div>`;
+          }
+        };
+
+        const form = document.getElementById('feedbackForm');
+        const btn = document.getElementById('submitBtn');
+        const msg = document.getElementById('message');
+
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          btn.disabled = true;
+          const originalBtnText = btn.textContent;
+          btn.textContent = '送 出 中...';
+          msg.className = 'msg';
+          msg.textContent = '';
+
+          try {
+            await addDoc(collection(db, 'feedbacks'), {
+              name: document.getElementById('name').value.trim(),
+              department: document.getElementById('department').value,
+              category: document.getElementById('category').value,
+              content: document.getElementById('content').value.trim(),
+              createdAt: serverTimestamp(),
+            });
+            msg.className = 'msg ok';
+            msg.textContent = '✓ 意見已成功送出，感謝您的回饋';
+            form.reset();
+            document
+              .querySelectorAll('.row')
+              .forEach((r) => r.classList.remove('filled'));
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          } catch (err) {
+            console.error(err);
+            msg.className = 'msg err';
+            msg.textContent = '✗ 送出失敗：' + err.message;
+          } finally {
+            btn.disabled = false;
+            btn.textContent = originalBtnText;
+          }
+        });
+      } catch (err) {
+        console.warn('Firebase 尚未設定或載入失敗：', err);
+      }
+    </script>
+  </body>
+</html>
