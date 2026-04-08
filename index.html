@@ -229,6 +229,51 @@
     opacity: 0; transition: opacity .3s; pointer-events: none; z-index: 999;
   }
   .toast.show { opacity: 1; }
+
+  /* 登入 modal */
+  .modal-mask {
+    position: fixed; inset: 0; background: rgba(0,0,0,.45);
+    display: none; align-items: center; justify-content: center;
+    z-index: 1000; padding: 20px;
+  }
+  .modal-mask.show { display: flex; }
+  .modal {
+    background: #fff; border-radius: 20px; padding: 28px 24px;
+    width: 100%; max-width: 340px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.3);
+  }
+  .modal h3 {
+    margin: 0 0 4px; font-size: 18px; font-weight: 800;
+    letter-spacing: 1px; text-align: center;
+  }
+  .modal p {
+    margin: 0 0 20px; font-size: 12px; color: #999;
+    text-align: center;
+  }
+  .modal .field {
+    background: #f6f6f6; border-radius: 10px;
+    padding: 10px 14px; margin-bottom: 10px;
+  }
+  .modal .field label {
+    display: block; font-size: 11px; color: #888;
+    font-weight: 600; margin-bottom: 2px;
+  }
+  .modal .field input {
+    width: 100%; border: none; background: transparent;
+    font-size: 15px; outline: none; font-family: inherit; color: #222;
+  }
+  .modal .err {
+    font-size: 12px; color: #c33; text-align: center;
+    min-height: 16px; margin: 4px 0 8px;
+  }
+  .modal .actions { display: flex; gap: 10px; margin-top: 6px; }
+  .modal .btn {
+    flex: 1; padding: 12px; border: none; border-radius: 24px;
+    font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit;
+  }
+  .modal .btn-cancel { background: #f1f1f1; color: #666; }
+  .modal .btn-primary { background: #222; color: #fff; letter-spacing: 2px; }
+  .modal .btn-primary:disabled { opacity: .5; }
 </style>
 </head>
 <body>
@@ -299,6 +344,10 @@
           <span class="icon"><span class="icon-dot">☰</span>意見表單紀錄</span>
           <span class="arrow">›</span>
         </button>
+        <button class="admin-btn" id="btnLogout" type="button" style="background:#fbe9e9;">
+          <span class="icon"><span class="icon-dot" style="background:#a33;">⎋</span>登出</span>
+          <span class="arrow">›</span>
+        </button>
       </div>
     </div>
 
@@ -325,6 +374,27 @@
   </div>
 
   <div class="toast" id="toast"></div>
+
+  <!-- 登入 Modal -->
+  <div class="modal-mask" id="loginModal">
+    <div class="modal">
+      <h3>後 台 登 入</h3>
+      <p>請使用管理員帳號登入</p>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="loginEmail" autocomplete="username" />
+      </div>
+      <div class="field">
+        <label>密碼</label>
+        <input type="password" id="loginPassword" autocomplete="current-password" />
+      </div>
+      <div class="err" id="loginErr"></div>
+      <div class="actions">
+        <button class="btn btn-cancel" id="loginCancel" type="button">取消</button>
+        <button class="btn btn-primary" id="loginSubmit" type="button">登 入</button>
+      </div>
+    </div>
+  </div>
 
 <script>
   (function () {
@@ -576,28 +646,85 @@
     window.__currentView = "user";
     window.__showView = showView;
 
-    // 後台密碼（暫時寫死，之後改為 Firebase Auth）
-    const ADMIN_PASSWORD = "1.0204";
-    let adminUnlocked = false;
+    // 後台登入（使用 Firebase Authentication）
+    const loginModal  = document.getElementById("loginModal");
+    const loginEmail  = document.getElementById("loginEmail");
+    const loginPwd    = document.getElementById("loginPassword");
+    const loginErr    = document.getElementById("loginErr");
+    const loginSubmit = document.getElementById("loginSubmit");
+    const loginCancel = document.getElementById("loginCancel");
+
+    function openLogin() {
+      loginErr.textContent = "";
+      loginPwd.value = "";
+      loginModal.classList.add("show");
+      setTimeout(() => loginEmail.focus(), 100);
+    }
+    function closeLogin() { loginModal.classList.remove("show"); }
+
+    loginCancel.addEventListener("click", closeLogin);
+    loginModal.addEventListener("click", (e) => {
+      if (e.target === loginModal) closeLogin();
+    });
+    [loginEmail, loginPwd].forEach(inp => {
+      inp.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") loginSubmit.click();
+      });
+    });
+
+    loginSubmit.addEventListener("click", async () => {
+      const email = loginEmail.value.trim();
+      const pwd   = loginPwd.value;
+      if (!email || !pwd) { loginErr.textContent = "請輸入 Email 和密碼"; return; }
+      if (typeof window.__firebaseLogin !== "function") {
+        loginErr.textContent = "Firebase 尚未載入，請稍候再試";
+        return;
+      }
+      loginSubmit.disabled = true;
+      loginSubmit.textContent = "登入中...";
+      loginErr.textContent = "";
+      try {
+        await window.__firebaseLogin(email, pwd);
+        closeLogin();
+        showView("admin");
+        toast("✓ 登入成功");
+      } catch (err) {
+        const code = err.code || "";
+        let msg = "登入失敗";
+        if (code.includes("invalid-credential") || code.includes("wrong-password") || code.includes("user-not-found"))
+          msg = "帳號或密碼錯誤";
+        else if (code.includes("invalid-email")) msg = "Email 格式錯誤";
+        else if (code.includes("too-many-requests")) msg = "嘗試次數過多，請稍後再試";
+        else msg = err.message || msg;
+        loginErr.textContent = msg;
+      } finally {
+        loginSubmit.disabled = false;
+        loginSubmit.textContent = "登 入";
+      }
+    });
 
     document.getElementById("feedbackTitle").addEventListener("click", () => {
       if (window.__currentView !== "user") {
         showView("user");
         return;
       }
-      if (!adminUnlocked) {
-        const pwd = prompt("請輸入後台密碼");
-        if (pwd === null) return;
-        if (pwd !== ADMIN_PASSWORD) {
-          toast("✗ 密碼錯誤");
-          return;
-        }
-        adminUnlocked = true;
+      if (window.__currentUser) {
+        // 已登入，直接進後台
+        showView("admin");
+      } else {
+        openLogin();
       }
-      showView("admin");
     });
     document.getElementById("btnSettings").addEventListener("click", () => showView("settings"));
     document.getElementById("btnRecords").addEventListener("click", () => showView("records"));
+    document.getElementById("btnLogout").addEventListener("click", async () => {
+      if (!confirm("確定要登出？")) return;
+      try {
+        if (typeof window.__firebaseLogout === "function") await window.__firebaseLogout();
+      } catch (e) { console.warn(e); }
+      showView("user");
+      toast("已登出");
+    });
     document.querySelectorAll("[data-back]").forEach(btn => {
       btn.addEventListener("click", () => showView("admin"));
     });
@@ -623,6 +750,8 @@
     const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
     const { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp }
       = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    const { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+      = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
 
     // TODO: 換成你自己的 Firebase 設定
     const firebaseConfig = {
@@ -636,6 +765,14 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    // 暴露給前段 script 用
+    window.__firebaseLogin = (email, password) => signInWithEmailAndPassword(auth, email, password);
+    window.__firebaseLogout = () => signOut(auth);
+    onAuthStateChanged(auth, (user) => {
+      window.__currentUser = user || null;
+    });
 
     function escapeHtml(s) {
       return String(s).replace(/[&<>"']/g, c => ({
